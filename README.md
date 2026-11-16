@@ -46,9 +46,10 @@
 [`experiments/card-flow/`](experiments/card-flow/) 把「三件好事」做成可以收集的卡：**写三条 → 生成卡 → 投篮把卡投进篮筐 → 卡背面朝上进卡池 → 点开翻牌看内容**。
 
 - 视觉复刻了「Upload files + 篮球」那套设计：白底、浅灰虚线框、橙色描边篮板、灰线篮网、底部卡片 + 上传进度条
-- 交互：拖拽卡片投篮（或点「自动投」）、橙色光点拖尾、篮网晃动 + 音效、卡池 3D 翻牌
+- 投篮交互按原设计改成**弹弓手感**：按住左下角的卡片**往后拉** → 出现一条**橙色虚线抛物线**（拉得越远弧线越高）→ **松手发射**；拉太短会弹回
+- 细节：卡片沿弧线飞行（带旋转和缩放）、篮圈下压回弹、**网兜逐根绳子摆动**、橙色光点拖尾、Web Audio 音效；卡池 3D 翻牌
 - 卡背是原创小动物（手绘 SVG，可整组替换素材，不碰版权）
-- 本地打开 `experiments/card-flow/index.html`；`#wall&flip=0` 直接看翻牌、`#shoot&frozen=0.6` 定格飞行瞬间
+- 本地打开 `experiments/card-flow/index.html`；`#shoot&drag` 看拉弓状态、`#shoot&frozen=0.55` 定格飞行、`#wall&flip=0` 看翻牌
 
 ![卡牌社区](experiments/card-flow/preview-wall.jpg)
 
