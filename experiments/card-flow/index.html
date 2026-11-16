@@ -154,6 +154,7 @@
   .modal.open .modal-card{transform:none}
   /* 翻牌放慢：整段 1.2s，前段抬起来一点，看得清翻转过程 */
   .modal-card .card-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.3,.05,.25,1);border-radius:20px}
+  .modal-card.no-anim .card-inner{transition:none!important}
   .modal-card.flipped .card-inner{transform:rotateY(180deg)}
   .modal-card .face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
     overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.35);background:#fff;border:1px solid var(--line)}
@@ -318,7 +319,7 @@
   });
 
   const shoot = {
-    active: false, dragging: false, flying: false, overZone: false,
+    active: false, dragging: false, flying: false, overZone: false, variant: 0,
     sx: 0, sy: 0, dx: 0, dy: 0, vy: 0, lastY: 0, lastT: 0,
     cardEl: null, fx: null, ctx: null, zoneEl: null, rimEl: null,
     trails: [], guideT: 0, swishT: -1, rimT: -1, baseNet: [],
@@ -525,7 +526,7 @@
       $("#uploadRow").classList.add("show");
       count += 1;
       $("#count").textContent = count;
-      collection.unshift({ author: "你", date: "11月16日", items: readItems() });
+      collection.unshift({ author: "你", date: "11月16日", items: readItems(), variant: shoot.variant });
       setTimeout(() => {
         this.cardEl.style.opacity = "";
         this.cardEl.style.transform = "translate(0,0)";
@@ -548,7 +549,7 @@
   }
   function readItems() { return $$("#view-write .row input").map(i => i.value.trim()).filter(Boolean); }
   function miniCardHTML() {
-    const idx = collection.length % BACKS.length;
+    const idx = shoot.variant % BACKS.length;
     const b = BACKS[idx];
     return `<div class="backface">
       <span class="bf-tag">THREE GOOD THINGS</span>
@@ -559,6 +560,8 @@
   function resetShoot() {
     shoot.dragging = false; shoot.flying = false; shoot.overZone = false;
     shoot.trails = []; shoot.swishT = -1; shoot.rimT = -1;
+    /* 投出去的卡背，和它进卡池后显示的那张卡背用同一只小动物 */
+    shoot.variant = collection.length % BACKS.length;
     shoot.cardEl.style.transform = "translate(0,0)";
     shoot.cardEl.style.opacity = "";
     shoot.cardEl.innerHTML = miniCardHTML();
@@ -573,13 +576,14 @@
 
   /* ================= 卡池 ================= */
   function cardHTML(d, i) {
-    const b = BACKS[i % BACKS.length];
+    const bi = d.variant != null ? d.variant : i % BACKS.length;
+    const b = BACKS[bi];
     return `<div class="card" data-i="${i}">
       <div class="card-inner">
         <div class="face back">
           <span class="back-tag">THREE GOOD THINGS</span>
           ${d.author === "你" && i === 0 ? '<span class="tag-new">刚投进</span>' : ""}
-          <div class="sticker" style="background:${b.bg}">${backSVG(i)}</div>
+          <div class="sticker" style="background:${b.bg}">${backSVG(bi)}</div>
           <div class="back-date">${d.date}</div>
         </div>
         <div class="face front">
@@ -594,21 +598,27 @@
   function openCard(i, instant) {
     const d = collection[i];
     if (!d) return;
-    const b = BACKS[i % BACKS.length];
+    const bi = d.variant != null ? d.variant : i % BACKS.length;
+    const b = BACKS[bi];
     $("#modalBack").innerHTML = `<span class="back-tag">THREE GOOD THINGS</span>
       ${d.author === "你" && i === 0 ? '<span class="tag-new">刚投进</span>' : ""}
-      <div class="sticker" style="background:${b.bg}">${backSVG(i)}</div>
+      <div class="sticker" style="background:${b.bg}">${backSVG(bi)}</div>
       <div class="back-date">${d.date}</div>`;
     $("#modalFront").innerHTML = `<div class="fdate">${d.date}</div>
       <ul>${d.items.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
       <div class="fauthor"><span>@${esc(d.author)}</span><span class="star">★</span></div>`;
     const mc = $("#modalCard");
+    /* 先把卡回到"背面朝上"且不要动画，再开始翻：这样第二次、第 N 次都从背面开始 */
+    mc.classList.add("no-anim");
     mc.classList.remove("flipped");
+    void mc.offsetWidth;
+    mc.classList.remove("no-anim");
     $("#modal").classList.add("open");
     if (instant) { mc.classList.add("flipped"); }
     else {
-      /* 先让卡稳稳出现在画面里，再开始慢慢翻 */
-      setTimeout(() => { mc.classList.add("flipped"); sound.flip(); }, 460);
+      requestAnimationFrame(() => {
+        setTimeout(() => { mc.classList.add("flipped"); sound.flip(); }, 460);
+      });
     }
   }
   function closeCard() { $("#modal").classList.remove("open"); }
