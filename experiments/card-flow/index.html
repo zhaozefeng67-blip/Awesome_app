@@ -80,6 +80,13 @@
   .mini .mi i{flex:0 0 auto;width:3px;height:3px;border-radius:50%;background:var(--orange);margin-top:4px}
   .mini .mfoot{margin-top:auto;font-size:7px;color:#B6BAC1;letter-spacing:.04em;padding-right:26px}
   .card-label{position:absolute;z-index:5;left:46px;bottom:72px;font-size:11px;color:var(--sub);white-space:nowrap}
+  /* 飞行卡用的是"卡背"（卡通小动物），不是文字面 */
+  .backface{position:relative;width:100%;height:100%;background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .backface::after{content:"";position:absolute;inset:6px;border:1px dashed #E4E6EA;border-radius:8px;pointer-events:none}
+  .bf-tag{position:absolute;top:9px;left:10px;font-size:6px;font-weight:600;letter-spacing:.05em;color:var(--orange)}
+  .bf-sticker{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);width:56%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .bf-sticker svg{width:70%;height:auto}
+  .bf-badge{position:absolute;left:10px;bottom:9px;font-size:6.5px;font-weight:600;color:#fff;background:var(--orange);padding:2px 4px;border-radius:4px;letter-spacing:.03em}
   .fx-canvas{position:absolute;inset:0;z-index:5;pointer-events:none;width:100%;height:100%}
   .shoot-foot{position:absolute;left:0;right:0;bottom:18px;z-index:6;display:flex;justify-content:center}
   .ghost{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#6B7078;font-size:12.5px;cursor:pointer;transition:all .2s}
@@ -540,10 +547,12 @@
   }
   function readItems() { return $$("#view-write .row input").map(i => i.value.trim()).filter(Boolean); }
   function miniCardHTML() {
-    return `<div class="mini">
-      <div class="mh">THREE GOOD THINGS</div>
-      ${readItems().map(t => `<div class="mi"><i></i><span>${esc(t)}</span></div>`).join("")}
-      <div class="mfoot">@你 · 刚刚<span class="badge">11·16</span></div>
+    const idx = collection.length % BACKS.length;
+    const b = BACKS[idx];
+    return `<div class="backface">
+      <span class="bf-tag">THREE GOOD THINGS</span>
+      <div class="bf-sticker" style="background:${b.bg}">${backSVG(idx)}</div>
+      <span class="bf-badge">11·16</span>
     </div>`;
   }
   function resetShoot() {
