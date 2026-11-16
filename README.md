@@ -27,6 +27,20 @@
 - 后端：**Go**，第二版再加（接口按 REST 设计，存储层会单独抽象）
 - 风格：暖色手账感（暖白 `#FAF6F0`、主色 `#D97742`）
 
+## 特效实验室（v0.2）
+
+[`experiments/effects-lab/`](experiments/effects-lab/) 是纯手写 canvas / CSS 的动效试验场（不引第三方库），用来对比「自己造」和之后要接入的现成方案（GSAP / Lottie / Rive / Three.js）。
+
+| 场景 | 效果 |
+| --- | --- |
+| 开屏 | 极光渐变 + 光尘漂浮，标题逐字浮现 |
+| 收下今天 | 光点爆散 → 收束成三颗星 → 结果卡浮现（带 Web Audio 合成音效） |
+| 时间河 | 滚轮切换日子卡片，3D 景深 + 星点流动 |
+
+右上角可切换两套配色（A 星空暖金 / B 晨光纸感）。本地打开 `experiments/effects-lab/index.html` 即可；`#give&frame=0.6` 这类 hash 可定格某个动画时刻，方便截图。
+
+![特效实验室](experiments/effects-lab/preview-burst.jpg)
+
 ## 功能草案
 
 | 版本 | 功能 |
