@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FAF6F0">
+<title>三件好事 · 原型 v0.1</title>
+<style>
+  :root{
+    --page:#EDE4D7;
+    --bg:#FAF6F0;
+    --card:#FFFFFF;
+    --ink:#2F2A25;
+    --muted:#8B8177;
+    --line:#EFE6DA;
+    --primary:#D97742;
+    --primary-ink:#B4602F;
+    --primary-soft:#FBEFE7;
+    --green:#8A9B77;
+    --shadow:0 1px 2px rgba(60,40,20,.05), 0 10px 28px rgba(60,40,20,.06);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #F6EFE4 0%, var(--page) 60%),
+      var(--page);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ===== 手机外壳（桌面端才有） ===== */
+  .phone{
+    position:relative;
+    width:390px;
+    height:840px;
+    background:var(--bg);
+    border-radius:40px;
+    box-shadow:0 30px 60px rgba(60,40,20,.18), 0 0 0 1px rgba(60,40,20,.06);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  @media (max-width:440px){
+    body{padding:0;background:var(--bg)}
+    .phone{width:100%;height:100dvh;border-radius:0;box-shadow:none}
+  }
+
+  /* ===== 顶栏 ===== */
+  .appbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 22px 6px;
+  }
+  .brand{font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink)}
+  .badge{
+    font-size:11px;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;
+    padding:3px 9px;background:#fff9;
+  }
+
+  /* ===== 视图 ===== */
+  .view{display:none;flex:1;min-height:0;overflow-y:auto;padding:6px 22px 108px;scrollbar-width:none}
+  .view::-webkit-scrollbar{display:none}
+  .view.active{display:block}
+
+  /* ===== 今天 ===== */
+  .date{font-size:13px;color:var(--muted);margin:10px 0 0}
+  h1{font-size:26px;line-height:1.35;font-weight:650;margin:6px 0 4px;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 16px}
+  .meta{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+  .streak{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--primary-ink);
+    background:var(--primary-soft);border-radius:999px;padding:6px 12px;
+  }
+  .streak b{font-size:13px}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--primary)}
+
+  .entry{
+    display:flex;gap:12px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 16px 12px;
+    margin-bottom:12px;
+    box-shadow:var(--shadow);
+  }
+  .num{
+    flex:0 0 auto;width:26px;height:26px;margin-top:2px;
+    border:1.5px solid #E6D9C8;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:600;color:var(--primary-ink);
+    background:#FFFDFA;
+  }
+  .field{flex:1;min-width:0}
+  .field textarea{
+    width:100%;border:0;outline:0;background:transparent;
+    font:inherit;font-size:15.5px;line-height:1.65;color:var(--ink);
+    resize:none;min-height:26px;padding:0;
+  }
+  .field textarea::placeholder{color:#B9AFA3}
+  .why-toggle{
+    display:inline-flex;align-items:center;gap:4px;
+    margin-top:8px;padding:0;border:0;background:none;cursor:pointer;
+    font-size:12px;color:var(--primary-ink);opacity:.85;
+  }
+  .why-toggle:hover{opacity:1}
+  .why-toggle .plus{transition:transform .2s ease;display:inline-block}
+  .why-toggle.open .plus{transform:rotate(45deg)}
+  .why-wrap{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .why-wrap.open{max-height:220px}
+  .field .why{
+    width:100%;margin-top:12px;padding:10px 12px;
+    background:#F7EFE3;border:1px solid #EADCC8;border-radius:10px;
+    font:inherit;font-size:14px;line-height:1.6;color:var(--ink);
+    resize:none;min-height:22px;outline:0;
+  }
+  .field .why::placeholder{color:#BDB2A5}
+
+  .save{
+    width:100%;height:52px;margin-top:22px;
+    border:0;border-radius:16px;cursor:pointer;
+    background:var(--primary);color:#fff;
+    font-size:16px;font-weight:600;letter-spacing:.04em;
+    box-shadow:0 8px 20px rgba(217,119,66,.28);
+    transition:transform .15s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .save:active{transform:translateY(1px)}
+  .save:disabled{
+    background:#E9DFD2;color:#A99C8C;cursor:default;
+    box-shadow:none;
+  }
+  .hint{font-size:12px;color:var(--muted);text-align:center;margin:12px 0 0}
+
+  /* ===== 回顾 ===== */
+  h2{font-size:22px;font-weight:650;margin:12px 0 4px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:16px;box-shadow:var(--shadow);margin-bottom:14px;
+  }
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .cal-title{font-size:14px;font-weight:600}
+  .cal-nav{display:flex;gap:6px}
+  .cal-nav button{
+    width:26px;height:26px;border-radius:50%;border:1px solid var(--line);
+    background:#fff;color:var(--muted);cursor:pointer;font-size:13px;line-height:1;
+  }
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+  .cal-grid .wd{font-size:11px;color:var(--muted);padding-bottom:4px}
+  .cal-grid .d{
+    height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;color:#5C5348;
+  }
+  .cal-grid .d.lit{background:var(--primary-soft);color:var(--primary-ink);font-weight:600}
+  .cal-grid .d.today{outline:1.5px solid var(--primary);outline-offset:-1.5px;font-weight:700}
+  .cal-grid .d.mute{color:#D3C9BC}
+  .legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:10px}
+  .legend i{width:8px;height:8px;border-radius:3px;background:var(--primary-soft);display:inline-block}
+
+  .btn-outline{
+    width:100%;height:46px;border-radius:14px;cursor:pointer;
+    border:1px dashed #DCCBB6;background:#FFFDF9;color:var(--primary-ink);
+    font-size:14px;font-weight:500;
+  }
+  .btn-outline:active{background:#FBF3EA}
+
+  .random-card .rc-date{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .random-card ul{list-style:none;margin:0;padding:0}
+  .random-card li{position:relative;padding-left:18px;margin:0 0 8px;font-size:14.5px;line-height:1.6}
+  .random-card li:last-child{margin-bottom:0}
+  .random-card li::before{content:"";position:absolute;left:4px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+  .random-card li .w{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+
+  .sec-title{font-size:12px;color:var(--muted);letter-spacing:.06em;margin:22px 0 10px}
+  .day-card{padding:14px 16px}
+  .day-card .dh{font-size:12px;color:var(--muted);margin-bottom:8px}
+
+  /* ===== 我的 ===== */
+  .row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:15px 16px;border-bottom:1px solid var(--line);
+  }
+  .row:last-child{border-bottom:0}
+  .row .label{font-size:15px}
+  .row .desc{font-size:12px;color:var(--muted);margin-top:3px}
+  .switch{
+    position:relative;width:44px;height:26px;border-radius:999px;background:#E6DCCE;
+    cursor:pointer;transition:background .2s ease;flex:0 0 auto;
+  }
+  .switch::after{
+    content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s ease;
+  }
+  .switch.on{background:var(--primary)}
+  .switch.on::after{transform:translateX(18px)}
+  .two{display:flex;gap:10px}
+  .btn-sm{
+    flex:1;height:42px;border-radius:12px;border:1px solid var(--line);
+    background:#FFFDF9;color:var(--ink);font-size:13.5px;cursor:pointer;
+  }
+  .btn-sm:active{background:#F7F1E8}
+  .danger{color:#C0563F}
+  .about{font-size:12px;color:var(--muted);line-height:1.8;padding:4px 2px 0}
+
+  /* ===== 底部 tab ===== */
+  .tabbar{
+    position:absolute;left:0;right:0;bottom:0;
+    display:flex;align-items:center;
+    padding:8px 6px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(250,246,240,.92);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+  }
+  .tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:6px 0;border:0;background:none;cursor:pointer;
+    color:var(--muted);font-size:11px;
+  }
+  .tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .tab.active{color:var(--primary-ink)}
+
+  /* ===== toast ===== */
+  .toast{
+    position:absolute;left:50%;bottom:104px;transform:translate(-50%,8px);
+    background:rgba(47,42,37,.92);color:#fff;
+    font-size:13px;padding:10px 16px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <header class="appbar">
+    <div class="brand">三件好事</div>
+    <div class="badge">原型 v0.1</div>
+  </header>
+
+  <!-- ================= 今天 ================= -->
+  <main class="view active" id="view-today">
+    <p class="date">2026年11月16日 周一</p>
+    <h1>今天的三件好事</h1>
+    <p class="sub">慢一点，写下来就好。</p>
+
+    <div class="meta">
+      <span class="streak"><i class="dot"></i>已记录 <b>12</b> 天</span>
+    </div>
+
+    <div class="entry">
+      <span class="num">1</span>
+      <div class="field">
+        <textarea rows="1" placeholder="写下一件好事…"></textarea>
+        <button class="why-toggle" type="button"><span class="plus">＋</span>为什么它让你开心？</button>
+        <div class="why-wrap"><textarea class="why" rows="1" placeholder="因为…"></textarea></div>
+      </div>
+    </div>
+
+    <div class="entry">
+      <span class="num">2</span>
+      <div class="field">
+        <textarea rows="1" placeholder="写下一件好事…"></textarea>
+        <button class="why-toggle" type="button"><span class="plus">＋</span>为什么它让你开心？</button>
+        <div class="why-wrap"><textarea class="why" rows="1" placeholder="因为…"></textarea></div>
+      </div>
+    </div>
+
+    <div class="entry">
+      <span class="num">3</span>
+      <div class="field">
+        <textarea rows="1" placeholder="写下一件好事…"></textarea>
+        <button class="why-toggle" type="button"><span class="plus">＋</span>为什么它让你开心？</button>
+        <div class="why-wrap"><textarea class="why" rows="1" placeholder="因为…"></textarea></div>
+      </div>
+    </div>
+
+    <button class="save" id="save" type="button" disabled>收下今天</button>
+    <p class="hint">填一条就能收下，三条也行</p>
+  </main>
+
+  <!-- ================= 回顾 ================= -->
+  <main class="view" id="view-review">
+    <h2>回顾</h2>
+    <p class="sub">你已经攒下 12 天的好时光。</p>
+
+    <div class="card">
+      <div class="cal-head">
+        <div class="cal-title">2026年11月</div>
+        <div class="cal-nav"><button>‹</button><button>›</button></div>
+      </div>
+      <div class="cal-grid" id="cal"></div>
+      <div class="legend"><i></i>有记录的日子</div>
+    </div>
+
+    <button class="btn-outline" id="randomBtn" type="button">随机翻一条</button>
+
+    <div class="card random-card" id="randomCard" style="margin-top:14px">
+      <div class="rc-date">2026年11月15日 周日</div>
+      <ul>
+        <li>食堂阿姨多给了一勺菜，还冲我笑了一下<span class="w">那天很累，被这种小事暖到</span></li>
+        <li>和室友把卡了两天的 bug 弄通了<span class="w">原来不是思路错，是一个变量名写错</span></li>
+        <li>晚上去操场走了两圈，风很凉</li>
+      </ul>
+    </div>
+
+    <div class="sec-title">最近记录</div>
+    <div class="card day-card">
+      <div class="dh">2026年11月14日 周六</div>
+      <div class="random-card"><ul>
+        <li>把那个音发对了，纠音课没白上</li>
+        <li>收到妈妈寄来的围巾</li>
+        <li>把房间收拾干净，心情也清爽了</li>
+      </ul></div>
+    </div>
+  </main>
+
+  <!-- ================= 我的 ================= -->
+  <main class="view" id="view-mine">
+    <h2>我的</h2>
+    <p class="sub">数据只存在这台设备上。</p>
+
+    <div class="card" style="padding:0">
+      <div class="row">
+        <div>
+          <div class="label">晚间提醒</div>
+          <div class="desc">每天 21:30 提醒我写三件好事</div>
+        </div>
+        <div class="switch on" data-switch></div>
+      </div>
+      <div class="row">
+        <div>
+          <div class="label">深色模式</div>
+          <div class="desc">原型占位，第二版再做</div>
+        </div>
+        <div class="switch" data-switch></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label" style="margin-bottom:10px">导出</div>
+      <div class="two">
+        <button class="btn-sm" data-toast="原型里先不真的导出">导出 JSON</button>
+        <button class="btn-sm" data-toast="原型里先不真的导出">导出 Markdown</button>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0">
+      <div class="row">
+        <div class="label danger">清空所有数据</div>
+        <div class="desc">不可恢复</div>
+      </div>
+    </div>
+
+    <p class="about">三件好事 v0.1 · 原型<br>来自积极心理学里的「Three Good Things」练习。</p>
+  </main>
+
+  <!-- ================= 底部 tab ================= -->
+  <nav class="tabbar">
+    <button class="tab active" data-tab="today">
+      <svg viewBox="0 0 24 24"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>
+      今天
+    </button>
+    <button class="tab" data-tab="review">
+      <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>
+      回顾
+    </button>
+    <button class="tab" data-tab="mine">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.4 3.6-5.2 7-5.2s6.2 1.8 7 5.2"/></svg>
+      我的
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  /* ---------- 小工具 ---------- */
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+  // 演示状态：?demo=1 或 #任意&demo（先记下来，showTab 会改写 hash）
+  const demoMode = location.hash.includes("demo") || new URLSearchParams(location.search).has("demo");
+
+  let toastTimer;
+  function toast(text) {
+    const t = $("#toast");
+    t.textContent = text;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 1600);
+  }
+
+  /* ---------- 视图切换 ---------- */
+  const views = { today: "#view-today", review: "#view-review", mine: "#view-mine" };
+  function showTab(name) {
+    if (!views[name]) name = "today";
+    $$(".view").forEach(v => v.classList.remove("active"));
+    $(views[name]).classList.add("active");
+    $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+    const view = $(views[name]);
+    view.scrollTop = 0;
+    history.replaceState(null, "", "#" + name);
+  }
+  $$(".tab").forEach(t => t.addEventListener("click", () => showTab(t.dataset.tab)));
+  showTab(((location.hash || "#today").slice(1)).split("&")[0]);
+
+  /* ---------- 记录页交互 ---------- */
+  function autosize(el) {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }
+
+  $$(".field textarea").forEach(ta => {
+    autosize(ta);
+    ta.addEventListener("input", () => {
+      autosize(ta);
+      updateSave();
+    });
+  });
+
+  $$(".why-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("open");
+      btn.nextElementSibling.classList.toggle("open");
+      const why = btn.nextElementSibling.querySelector(".why");
+      if (btn.classList.contains("open")) { why.focus(); autosize(why); }
+    });
+  });
+
+  $$(".why").forEach(ta => {
+    ta.addEventListener("input", () => autosize(ta));
+  });
+
+  const save = $("#save");
+  function updateSave() {
+    const filled = $$(".field textarea").some(ta =>
+      ta.classList.contains("why") ? false : ta.value.trim().length > 0
+    );
+    save.disabled = !filled;
+  }
+
+  save.addEventListener("click", () => {
+    save.textContent = "已收下 ✓";
+    save.disabled = false;
+    toast("今天也值得记住");
+    setTimeout(() => {
+      save.textContent = "收下今天";
+      updateSave();
+    }, 1800);
+  });
+
+  /* ---------- 回顾：日历 ---------- */
+  const litDays = new Set([1, 2, 3, 5, 6, 7, 9, 10, 11, 12, 13, 15, 16]);
+  const cal = $("#cal");
+  ["日", "一", "二", "三", "四", "五", "六"].forEach(w => {
+    const d = document.createElement("div");
+    d.className = "wd";
+    d.textContent = w;
+    cal.appendChild(d);
+  });
+  // 2026-11-01 是周日，不需要前置空格
+  for (let d = 1; d <= 30; d++) {
+    const cell = document.createElement("div");
+    cell.className = "d";
+    cell.textContent = d;
+    if (litDays.has(d)) cell.classList.add("lit");
+    if (d === 16) cell.classList.add("today");
+    cal.appendChild(cell);
+  }
+
+  /* ---------- 回顾：随机翻一条 ---------- */
+  const past = [
+    {
+      date: "2026年11月15日 周日",
+      items: [
+        ["食堂阿姨多给了一勺菜，还冲我笑了一下", "那天很累，被这种小事暖到"],
+        ["和室友把卡了两天的 bug 弄通了", "原来不是思路错，是一个变量名写错"],
+        ["晚上去操场走了两圈，风很凉"]
+      ]
+    },
+    {
+      date: "2026年11月12日 周四",
+      items: [
+        ["在图书馆占到靠窗的位置", "一抬头就是树和光"],
+        ["论文相关的小实验跑出结果", "改了三周终于对上了"],
+        ["看到很好看的晚霞"]
+      ]
+    },
+    {
+      date: "2026年11月9日 周一",
+      items: [
+        ["早八居然没迟到"],
+        ["中午和高中同学通了电话", "聊了二十分钟，像回到以前"],
+        ["把 to-do 清掉了一半"]
+      ]
+    }
+  ];
+  let lastPick = -1;
+  $("#randomBtn").addEventListener("click", () => {
+    let i = Math.floor(Math.random() * past.length);
+    if (i === lastPick) i = (i + 1) % past.length;
+    lastPick = i;
+    const e = past[i];
+    const card = $("#randomCard");
+    card.querySelector(".rc-date").textContent = e.date;
+    card.querySelector("ul").innerHTML = e.items
+      .map(([t, w]) => `<li>${t}${w ? `<span class="w">${w}</span>` : ""}</li>`)
+      .join("");
+  });
+
+  /* ---------- 我的：开关 / 按钮 ---------- */
+  $$("[data-switch]").forEach(sw => {
+    sw.addEventListener("click", () => sw.classList.toggle("on"));
+  });
+  $$("[data-toast]").forEach(btn => {
+    btn.addEventListener("click", () => toast(btn.dataset.toast));
+  });
+
+  /* ---------- 演示状态：预填内容 ---------- */
+  if (demoMode) {
+    const mainInputs = $$("#view-today .field > textarea");
+    mainInputs[0].value = "食堂阿姨多给了一勺菜，还冲我笑了一下";
+    mainInputs[1].value = "和室友把卡了两天的 bug 弄通了";
+    mainInputs[2].value = "晚上去操场走了两圈，风很凉";
+    const whyBtn = $$(".why-toggle")[0];
+    whyBtn.click();
+    $$(".why")[0].value = "那天很累，被这种小事暖到";
+    $$("textarea").forEach(autosize);
+    updateSave();
+  }
+</script>
+</body>
+</html>
