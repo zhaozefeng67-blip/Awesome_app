@@ -146,13 +146,14 @@
 
   /* ============ 放大查看（点卡片弹出） ============ */
   .modal{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-    opacity:0;visibility:hidden;transition:opacity .32s ease,visibility .32s}
+    opacity:0;visibility:hidden;transition:opacity .4s ease,visibility .4s}
   .modal.open{opacity:1;visibility:visible}
   .modal-backdrop{position:absolute;inset:0;background:rgba(22,24,29,.4);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
   .modal-card{position:relative;width:min(330px,84vw);aspect-ratio:3/4.05;perspective:1300px;
-    transform:translateY(14px) scale(.94);transition:transform .42s cubic-bezier(.2,.9,.25,1)}
+    transform:translateY(14px) scale(.94);transition:transform .55s cubic-bezier(.2,.9,.25,1)}
   .modal.open .modal-card{transform:none}
-  .modal-card .card-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .78s cubic-bezier(.2,.9,.25,1);border-radius:20px}
+  /* 翻牌放慢：整段 1.2s，前段抬起来一点，看得清翻转过程 */
+  .modal-card .card-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.3,.05,.25,1);border-radius:20px}
   .modal-card.flipped .card-inner{transform:rotateY(180deg)}
   .modal-card .face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
     overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.35);background:#fff;border:1px solid var(--line)}
@@ -605,7 +606,10 @@
     mc.classList.remove("flipped");
     $("#modal").classList.add("open");
     if (instant) { mc.classList.add("flipped"); }
-    else { sound.flip(); setTimeout(() => mc.classList.add("flipped"), 150); }
+    else {
+      /* 先让卡稳稳出现在画面里，再开始慢慢翻 */
+      setTimeout(() => { mc.classList.add("flipped"); sound.flip(); }, 460);
+    }
   }
   function closeCard() { $("#modal").classList.remove("open"); }
   $("#modalClose").addEventListener("click", closeCard);
