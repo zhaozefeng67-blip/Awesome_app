@@ -136,6 +136,36 @@
     .head{padding:20px 24px 10px}
     .head h1{font-size:24px}
   }
+
+  /* ============ 放大查看（点卡片弹出） ============ */
+  .modal{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+    opacity:0;visibility:hidden;transition:opacity .32s ease,visibility .32s}
+  .modal.open{opacity:1;visibility:visible}
+  .modal-backdrop{position:absolute;inset:0;background:rgba(22,24,29,.4);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+  .modal-card{position:relative;width:min(330px,84vw);aspect-ratio:3/4.05;perspective:1300px;
+    transform:translateY(14px) scale(.94);transition:transform .42s cubic-bezier(.2,.9,.25,1)}
+  .modal.open .modal-card{transform:none}
+  .modal-card .card-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .78s cubic-bezier(.2,.9,.25,1);border-radius:20px}
+  .modal-card.flipped .card-inner{transform:rotateY(180deg)}
+  .modal-card .face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.35);background:#fff;border:1px solid var(--line)}
+  .modal-card .face.back{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  .modal-card .face.back::after{content:"";position:absolute;inset:10px;border:1px dashed #E4E6EA;border-radius:14px;pointer-events:none}
+  .modal-card .back-tag{top:16px;left:18px;font-size:9px;letter-spacing:.08em}
+  .modal-card .sticker{margin:auto 0;width:44%}
+  .modal-card .back-date{bottom:18px;font-size:10px}
+  .modal-card .tag-new{top:16px;right:16px;font-size:9px;padding:3px 8px}
+  .modal-card .face.front{padding:22px 22px 18px;display:flex;flex-direction:column;transform:rotateY(180deg)}
+  .modal-card .fdate{font-size:11px;letter-spacing:.14em}
+  .modal-card .front ul{margin:14px 0 0;flex:1;min-height:0;overflow:auto;list-style:none;padding:0}
+  .modal-card .front li{position:relative;padding-left:16px;font-size:14.5px;line-height:1.62;margin-bottom:12px;color:#2E333A}
+  .modal-card .front li::before{content:"";position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:var(--orange)}
+  .modal-card .fauthor{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#AEB3BA;letter-spacing:.05em}
+  .modal-card .fauthor .star{color:var(--orange);font-size:13px}
+  .modal-close{padding:9px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.94);
+    color:#3A3F47;font-size:12.5px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);z-index:2}
+  .modal-close:hover{border-color:var(--orange);color:var(--orange)}
+  html.still .modal,html.still .modal-card,html.still .modal-card .card-inner{transition:none!important}
 </style>
 </head>
 <body>
@@ -207,6 +237,18 @@
       </div>
     </section>
   </div>
+</div>
+
+<!-- 放大查看 -->
+<div class="modal" id="modal">
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-card" id="modalCard">
+    <div class="card-inner">
+      <div class="face back" id="modalBack"></div>
+      <div class="face front" id="modalFront"></div>
+    </div>
+  </div>
+  <button class="modal-close" id="modalClose">收起</button>
 </div>
 
 <script>
@@ -538,6 +580,29 @@
       </div>
     </div>`;
   }
+  /* ---- 放大查看 ---- */
+  function openCard(i, instant) {
+    const d = collection[i];
+    if (!d) return;
+    const b = BACKS[i % BACKS.length];
+    $("#modalBack").innerHTML = `<span class="back-tag">THREE GOOD THINGS</span>
+      ${d.author === "你" && i === 0 ? '<span class="tag-new">刚投进</span>' : ""}
+      <div class="sticker" style="background:${b.bg}">${backSVG(i)}</div>
+      <div class="back-date">${d.date}</div>`;
+    $("#modalFront").innerHTML = `<div class="fdate">${d.date}</div>
+      <ul>${d.items.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+      <div class="fauthor"><span>@${esc(d.author)}</span><span class="star">★</span></div>`;
+    const mc = $("#modalCard");
+    mc.classList.remove("flipped");
+    $("#modal").classList.add("open");
+    if (instant) { mc.classList.add("flipped"); }
+    else { sound.flip(); setTimeout(() => mc.classList.add("flipped"), 150); }
+  }
+  function closeCard() { $("#modal").classList.remove("open"); }
+  $("#modalClose").addEventListener("click", closeCard);
+  $("#modalBackdrop").addEventListener("click", closeCard);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeCard(); });
+
   function renderWall() {
     const wall = $("#wall");
     wall.innerHTML = collection.map((d, i) => cardHTML(d, i)).join("");
@@ -547,7 +612,7 @@
       el.style.transitionDelay = `${Math.min(i, 12) * 40}ms`;
       requestAnimationFrame(() => el.classList.add("enter"));
     });
-    cards.forEach(el => el.addEventListener("click", () => { el.classList.toggle("flipped"); sound.flip(); }));
+    cards.forEach((el, i) => el.addEventListener("click", () => openCard(i)));
   }
 
   /* ================= 声音 ================= */
@@ -592,10 +657,9 @@
   const start = hashParts[0] || "write";
   show(["shoot", "wall"].includes(start) ? start : "write");
 
-  const flipArg = hashParts.find(p => p.startsWith("flip="));
+  const flipArg = hashParts.find(p => p.startsWith("open="));
   if (start === "wall" && flipArg) {
-    const el = $$(".card")[parseInt(flipArg.split("=")[1], 10) || 0];
-    if (el) el.classList.add("flipped");
+    openCard(parseInt(flipArg.split("=")[1], 10) || 0, true);
   }
   /* &drag：定格"正在拖拽"的样子（虚线预览 + 框高亮）；&frozen=0.6 定格飞行 */
   const dragArg = hashParts.includes("drag");
