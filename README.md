@@ -41,12 +41,13 @@
 
 ![特效实验室](experiments/effects-lab/preview-burst.jpg)
 
-## 卡牌社区 demo（v0.1）
+## 卡牌社区 demo（v0.2 · 白底版）
 
 [`experiments/card-flow/`](experiments/card-flow/) 把「三件好事」做成可以收集的卡：**写三条 → 生成卡 → 投篮把卡投进篮筐 → 卡背面朝上进卡池 → 点开翻牌看内容**。
 
+- 视觉复刻了「Upload files + 篮球」那套设计：白底、浅灰虚线框、橙色描边篮板、灰线篮网、底部卡片 + 上传进度条
+- 交互：拖拽卡片投篮（或点「自动投」）、橙色光点拖尾、篮网晃动 + 音效、卡池 3D 翻牌
 - 卡背是原创小动物（手绘 SVG，可整组替换素材，不碰版权）
-- 交互：拖拽卡片投篮（或点「自动投」）、篮网晃 + 光点、卡池 3D 翻牌、Web Audio 音效
 - 本地打开 `experiments/card-flow/index.html`；`#wall&flip=0` 直接看翻牌、`#shoot&frozen=0.6` 定格飞行瞬间
 
 ![卡牌社区](experiments/card-flow/preview-wall.jpg)
